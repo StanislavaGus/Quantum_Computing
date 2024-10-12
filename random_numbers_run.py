@@ -1,20 +1,6 @@
 import numpy as np
 from symulator import SingleQubitSimulator
-from interface import QuantumDevice
-
-
-def qrng(device: QuantumDevice) -> bool:
-    """Генерация с использованием матрицы Адамара (50/50)."""
-    with device.using_qubit() as q:
-        q.h()
-        return q.measure()
-
-
-def qrng_with_rotation(device: QuantumDevice) -> bool:
-    """Генерация с использованием поворотной матрицы для изменения распределения."""
-    with device.using_qubit() as q:
-        q.rotation()  # Используем поворотную матрицу для изменения вероятности
-        return q.measure()
+from random_generator import RandomGenerator as rg
 
 
 if __name__ == "__main__":
@@ -29,7 +15,7 @@ if __name__ == "__main__":
     # Генерация с использованием матрицы Адамара (50/50)
     print("Генерация с использованием матрицы Адамара (50/50):")
     for idx_sample in range(total_samples):
-        random_sample = qrng(qsim)
+        random_sample = rg.qrng(qsim)
         if random_sample == 0:
             count_zeros_hadamard += 1
         else:
@@ -48,13 +34,11 @@ if __name__ == "__main__":
     # Генерация с использованием поворотной матрицы
     print("Генерация с использованием поворотной матрицы:")
     for idx_sample in range(total_samples):
-        random_sample = qrng_with_rotation(qsim)
+        random_sample = rg.qrng_with_rotation(qsim)
         if random_sample == 0:
             count_zeros_rotation += 1
         else:
             count_ones_rotation += 1
-
-        #print(f"QRNG-генератор вернул {random_sample}.")
 
     # Подсчет процентов для поворотной матрицы
     percentage_zeros_rotation = (count_zeros_rotation / total_samples) * 100
