@@ -20,5 +20,3 @@ def rotation_matrix(theta: float) -> np.ndarray:
         [np.sin(theta/2), np.cos(theta/2)]
     ], dtype=complex)
 
-# Используем поворотную матрицу для изменения вероятности
-R_THETA = rotation_matrix(np.pi / 3)  # Замените на нужный угол для изменения распределения

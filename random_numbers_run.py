@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # Генерация с использованием поворотной матрицы
     print("Генерация с использованием поворотной матрицы:")
     for idx_sample in range(total_samples):
-        random_sample = rg.qrng_with_rotation(qsim)
+        random_sample = rg.qrng_with_rotation(qsim, np.pi / 3)
         if random_sample == 0:
             count_zeros_rotation += 1
         else:

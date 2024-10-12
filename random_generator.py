@@ -1,4 +1,5 @@
 from interface import QuantumDevice
+import numpy as np
 class RandomGenerator():
     @staticmethod
     def qrng(device: QuantumDevice) -> bool:
@@ -8,8 +9,8 @@ class RandomGenerator():
             return q.measure()
 
     @staticmethod
-    def qrng_with_rotation(device: QuantumDevice) -> bool:
+    def qrng_with_rotation(device: QuantumDevice, theta:float = np.pi / 6) -> bool:
         """Генерация с использованием поворотной матрицы для изменения распределения."""
         with device.using_qubit() as q:
-            q.rotation()  # Используем поворотную матрицу для изменения вероятности
+            q.rotation(theta)  # Используем поворотную матрицу для изменения вероятности
             return q.measure()

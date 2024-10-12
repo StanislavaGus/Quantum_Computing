@@ -1,6 +1,6 @@
 import numpy as np
 from interface import Qubit, QuantumDevice
-from constants import H, KET_0, R_THETA  # Импортируем R_THETA для поворота
+from constants import H, KET_0,rotation_matrix  # Импортируем R_THETA для поворота
 
 
 class SimulatedQubit(Qubit):
@@ -11,8 +11,9 @@ class SimulatedQubit(Qubit):
         """Применение матрицы Адамара (50/50 распределение)."""
         self.state = H @ self.state
 
-    def rotation(self):
+    def rotation(self, theta:float):
         """Применение поворотной матрицы для изменения распределения."""
+        R_THETA = rotation_matrix(theta)
         self.state = R_THETA @ self.state
 
     def measure(self) -> bool: #смотри ниже объяснение работы этой функции
