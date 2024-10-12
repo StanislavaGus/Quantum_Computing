@@ -1,3 +1,7 @@
+"""
+    для протокола QKD
+"""
+
 from symulator import SingleQubitSimulator
 from random_generator import RandomGenerator as rg
 from quantum_key_distribution import QuantumKeyDistribution as qkd_class

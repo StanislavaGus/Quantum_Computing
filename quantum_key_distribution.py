@@ -1,3 +1,8 @@
+"""
+    для протокола QKD
+"""
+
+
 from interface import Qubit
 from interface import QuantumDevice
 
