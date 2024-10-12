@@ -16,9 +16,9 @@ H = np.array([
 def rotation_matrix(theta: float) -> np.ndarray:
     """Возвращает матрицу поворота на угол theta."""
     return np.array([
-        [np.cos(theta), -np.sin(theta)],
-        [np.sin(theta), np.cos(theta)]
+        [np.cos(theta/2), -np.sin(theta/2)],
+        [np.sin(theta/2), np.cos(theta/2)]
     ], dtype=complex)
 
 # Используем поворотную матрицу для изменения вероятности
-R_THETA = rotation_matrix(np.pi / 6)  # Замените на нужный угол для изменения распределения
+R_THETA = rotation_matrix(np.pi / 3)  # Замените на нужный угол для изменения распределения
