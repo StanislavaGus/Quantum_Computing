@@ -20,7 +20,7 @@ def qrng_with_rotation(device: QuantumDevice) -> bool:
 if __name__ == "__main__":
     qsim = SingleQubitSimulator()
 
-    total_samples = 100  # Количество генераций для каждой методики
+    total_samples = 10000  # Количество генераций для каждой методики
     count_zeros_hadamard = 0
     count_ones_hadamard = 0
     count_zeros_rotation = 0
