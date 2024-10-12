@@ -5,6 +5,9 @@ class Qubit(metaclass=ABCMeta):
     def h(self): pass #Применение матрицы Адамара
 
     @abstractmethod
+    def x(self): pass # квантовый NOT
+
+    @abstractmethod
     def measure(self) -> bool: pass
     # Измерение состояния кубита, возвращает True(1) или False(0)
 

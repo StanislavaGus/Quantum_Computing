@@ -11,6 +11,12 @@ H = np.array([
     [1, -1]
 ], dtype=complex) / np.sqrt(2)
 
+#матрица для операции x (NOT)
+X = np.array([
+[0, 1],
+[1, 0]
+], dtype=complex) / np.sqrt(2)
+
 #создает матрицу поворота на угол theta.
 #Поворот изменяет вероятности того, что кубит окажется в состоянии |0⟩ или |1⟩ при измерении
 def rotation_matrix(theta: float) -> np.ndarray:
