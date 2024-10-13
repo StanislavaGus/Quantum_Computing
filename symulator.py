@@ -159,7 +159,7 @@ class NQubitSimulator:
     def apply_n_qubit_gate(self, gate):
         self.state = gate @ self.state
 
-    def measure(self, qubit_idx: int) -> bool:
+    def measure(self, qubit_idx: int) -> int:
         """
         Измерить состояние одного кубита в системе
         """
@@ -179,7 +179,7 @@ class NQubitSimulator:
                 prob_zero += np.abs(self.state[i, 0]) ** 2
 
         is_measured_zero = np.random.random() <= prob_zero
-        return bool(0 if is_measured_zero else 1)
+        return 0 if is_measured_zero else 1
 
     def set_state(self, state):
         self.state = state
