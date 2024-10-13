@@ -1,6 +1,6 @@
 import numpy as np
 from interface import Qubit, QuantumDevice
-from constants import H, X, KET_0,rotation_matrix  # Импортируем R_THETA для поворота
+from constants import H, X, KET_0,rotation_matrix, CNOT
 
 
 class SimulatedQubit(Qubit):
@@ -43,68 +43,60 @@ class SingleQubitSimulator(QuantumDevice):
 
 
 
-    """
-    Метод `measure` в классе `SimulatedQubit` выполняет квантовое измерение состояния кубита. Давайте разберем его пошагово:
+class TwoQubitSimulator(QuantumDevice):
+    qubits = [SimulatedQubit(), SimulatedQubit()]
+    state = np.kron(qubits[0].state, qubits[1].state) #тензорное произведение
 
-### Код метода `measure`
+    def allocate_qubit(self) -> SimulatedQubit:
+        if self.qubits:
+            return self.qubits.pop()
 
-```python
-def measure(self) -> bool:
-    Измерение состояния кубита.
-    pr0 = np.abs(self.state[0, 0]) ** 2
-    # вероятность состояния |0⟩, которая вычисляется как квадрат модуля амплитуды вероятности
+    def deallocate_qubit(self, qubit: SimulatedQubit):
+        self.qubits.append(qubit)
 
-    sample = np.random.random() <= pr0
-    # генерируется случайное число от 0 до 1. Если оно меньше или равно вероятности состояния |0⟩,
-    # результатом будет 0, иначе 1
+    def apply_single_qubit_gate(self, gate, qubit_idx: int):
+        if qubit_idx == 0:
+            identity = np.eye(2)
+            operation = np.kron(gate, identity)  # gate к 1му
+        elif qubit_idx == 1:
+            identity = np.eye(2)
+            operation = np.kron(identity, gate)  # gate ко 2му
+        else:
+            raise ValueError("Недопустимый индекс кубита.")
 
-    return bool(0 if sample else 1)
-```
+        # Apply operation to quantum state.
+        self.state = operation @ self.state
 
-### Разбор кода
+    def apply_two_qubit_gate(self, gate):
+        """Применяем двухкубитную операцию к состоянию."""
+        self.state = gate @ self.state  # применяем двухкубитную операцию ко всей системе
 
-1. **Вероятность состояния |0⟩:**
+    def cnot(self):
+        self.apply_two_qubit_gate(CNOT)
 
-   ```python
-   pr0 = np.abs(self.state[0, 0]) ** 2
-   ```
+    def measure(self, qubit_idx: int) -> bool:
+        """
+        Измерить состояние одного кубита в системе
+        """
+        if qubit_idx == 0:
+            # Вероятность |00> или |01>.
+            probability0 = np.abs(self.state[0, 0]) ** 2 + np.abs(self.state[1, 0]) ** 2
+        elif qubit_idx == 1:
+            # Вероятность |00> или |10>.
+            probability0 = np.abs(self.state[0, 0]) ** 2 + np.abs(self.state[2, 0]) ** 2
+        else:
+            raise ValueError("Недопустимый индекс кубита.")
 
-   - `self.state` — это вектор состояния кубита. Например, для состояния `|0⟩` это будет `[1, 0]`, а для состояния суперпозиции может быть что-то вроде `[0.5, 0.5]`.
-   - `self.state[0, 0]` — это амплитуда вероятности для состояния `|0⟩`. В квантовой механике, состояние кубита можно записать как линейную комбинацию базисных состояний: `α|0⟩ + β|1⟩`, где `α` и `β` — амплитуды вероятности.
-   - `np.abs(self.state[0, 0])` — модуль (абсолютное значение) амплитуды вероятности для состояния `|0⟩`.
-   - `np.abs(self.state[0, 0]) ** 2` — квадрат модуля амплитуды, который дает **вероятность** того, что кубит будет измерен в состоянии `|0⟩`.
+        is_measured_0 = np.random.random() <= probability0
+        return bool(0 if is_measured_0 else 1)
 
-2. **Генерация случайного числа и сравнение с вероятностью:**
+    def reset(self):
+        # Сбрасываем состояние каждого кубита индивидуально
+        #for qubit in self.qubits:
+         #   qubit.reset()
+        # Сбрасываем состояние всей системы (два кубита)
+        #self.state = np.kron(self.qubits[0].state, self.qubits[1].state)  # Сбрасываем систему в |00> состояние
+        self.state = np.kron(KET_0, KET_0)  # Сбрасываем систему в |00> состояние
 
-   ```python
-   sample = np.random.random() <= pr0
-   ```
-
-   - `np.random.random()` генерирует случайное число от 0 до 1 (равномерное распределение).
-   - `sample` будет `True`, если случайное число меньше или равно `pr0` (вероятности состояния `|0⟩`), и `False` в противном случае.
-
-   Это моделирует процесс измерения в квантовой механике. Если вероятность состояния `|0⟩` высока, то случайное число с большей вероятностью будет меньше или равно этой вероятности, и мы получим `True`.
-
-3. **Возвращение результата:**
-
-   ```python
-   return bool(0 if sample else 1)
-   ```
-
-   - Если `sample` равно `True`, это означает, что кубит был измерен в состоянии `|0⟩`, и метод вернет `0`.
-   - Если `sample` равно `False`, это означает, что кубит был измерен в состоянии `|1⟩`, и метод вернет `1`.
-
-   `bool(0 if sample else 1)` — это способ преобразовать результат в булев тип. Так как `0` и `1` уже представляют собой логические значения, это можно сделать и без явного преобразования. Более просто это можно записать как:
-
-   ```python
-   return 0 if sample else 1
-   ```
-
-### Резюме
-
-Метод `measure` моделирует процесс измерения квантового кубита следующим образом:
-
-1. Вычисляет вероятность того, что кубит находится в состоянии `|0⟩`, основываясь на амплитуде вероятности.
-2. Сравнивает случайно сгенерированное число с этой вероятностью для определения результата измерения.
-3. Возвращает результат `0` или `1`, в зависимости от того, был ли кубит измерен в состоянии `|0⟩` или `|1⟩`.
-    """
+    def set_state(self, state):
+        self.state = state

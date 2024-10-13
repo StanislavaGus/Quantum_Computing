@@ -26,3 +26,10 @@ def rotation_matrix(theta: float) -> np.ndarray:
         [np.sin(theta/2), np.cos(theta/2)]
     ], dtype=complex)
 
+# двухкубитный гейт CNOT
+CNOT = np.array([
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 1],
+    [0, 0, 1, 0]
+], dtype=complex)
