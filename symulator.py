@@ -113,6 +113,21 @@ class NQubitSimulator:
         self.reset()
 
     def apply_single_qubit_gate(self, gate, qubit_idx: int):
+        if qubit_idx < 0 or qubit_idx >= self.dimension:
+            raise ValueError(f"Недопустимый индекс кубита. Ожидается индекс в диапазоне [0;{self.dimension - 1}].")
+
+        # Создаем тензорный оператор для применения гейта к заданному кубиту
+        operation = np.eye(1)  # Начальный оператор - тождественная матрица размерности 1
+
+        for i in range(self.dimension):
+            if i == qubit_idx:
+                operation = np.kron(operation, gate)  # Применяем гейт для выбранного кубита
+            else:
+                operation = np.kron(operation, np.eye(2))  # Для остальных - тождественная матрица (I)
+
+        self.state = operation @ self.state
+
+    def apply_single_qubit_gate2(self, gate, qubit_idx: int):
         operation = None
         if 0 < qubit_idx < self.dimension - 1:
             # I x I x ... x G x I x ... x I
@@ -170,6 +185,7 @@ class NQubitSimulator:
         self.state = state
 
     def reset(self):
-        self.state = KET_0
-        for i in range(1, self.dimension):
-            self.state = np.kron(self.state, KET_0)
+        """Сбрасываем состояние системы кубитов в |00...0>"""
+        self.state = np.copy(KET_0)  # Начинаем с состояния |0>
+        for _ in range(1, self.dimension):
+            self.state = np.kron(self.state, KET_0)  # Применяем тензорное произведение для каждого кубита

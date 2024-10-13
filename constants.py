@@ -23,11 +23,18 @@ H = np.array([
     [1, -1]
 ], dtype=complex) / np.sqrt(2)
 
+def HN(N: int):
+    H_N = H.copy()
+    for i in range(N - 1):
+        H_N = np.kron(H_N, H)
+    return H_N
+
 #матрица для операции x (NOT)
 X = np.array([
-[0, 1],
-[1, 0]
-], dtype=complex) / np.sqrt(2)
+    [0, 1],
+    [1, 0]
+], dtype=complex)
+
 
 #создает матрицу поворота на угол theta.
 #Поворот изменяет вероятности того, что кубит окажется в состоянии |0⟩ или |1⟩ при измерении

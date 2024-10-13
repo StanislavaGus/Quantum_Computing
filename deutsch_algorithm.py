@@ -7,7 +7,7 @@ def deutsch_algorithm(simulator: TwoQubitSimulator, oracle) -> bool:
 
     simulator.reset()
 
-    simulator.apply_single_qubit_gate(X, 1) #устанавливаем первый кубит |0)
+    simulator.apply_single_qubit_gate(X, 1) #устанавливаем первый кубит |1)
 
     simulator.apply_two_qubit_gate(np.kron(H, H))  # применяем адамара ко всем кубитам
 
