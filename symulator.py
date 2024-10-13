@@ -158,13 +158,16 @@ class NQubitSimulator:
 
         #Вероятность того, что кубит находится в состоянии ∣0⟩,
         # вычисляется как сумма квадратов амплитуд состояний, в которых выбранный кубит равен 0
-        
+
         for i in range(len(combinations)):
             if combinations[i][qubit_idx] == 0:
                 prob_zero += np.abs(self.state[i, 0]) ** 2
 
         is_measured_zero = np.random.random() <= prob_zero
         return bool(0 if is_measured_zero else 1)
+
+    def set_state(self, state):
+        self.state = state
 
     def reset(self):
         self.state = KET_0

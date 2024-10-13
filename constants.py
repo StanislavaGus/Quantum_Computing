@@ -5,6 +5,18 @@ KET_0 = np.array([
     [0]
 ], dtype=complex)
 
+KET_1 = np.array([
+    [0],
+    [1]
+], dtype=complex)
+
+KET_00 = np.kron(KET_0, KET_0)
+KET_01 = np.kron(KET_0, KET_1)
+KET_10 = np.kron(KET_1, KET_0)
+KET_11 = np.kron(KET_1, KET_1)
+
+
+
 #матрица Адамара, которая переводит кубит в суперпозицию
 H = np.array([
     [1, 1],
