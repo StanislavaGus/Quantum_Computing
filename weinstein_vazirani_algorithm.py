@@ -5,25 +5,25 @@ from constants import X, HN
 from symulator import NQubitSimulator
 
 
-def bernstein_vazirani(sim: NQubitSimulator, oracle) -> List[bool]:
+def bernstein_vazirani(simulatorulator: NQubitSimulator, oracle) -> List[bool]:
 
-    sim.reset()  # Шаг 1: Сбрасываем квантовый симулятор в состояние |0...0>
-    sim.apply_single_qubit_gate(X,
-                                sim.dimension - 1)  # Применяем гейт X к последнему кубиту, чтобы подготовить его в |1>
+    simulator.reset()  # Шаг 1: Сбрасываем квантовый симулятор в состояние |0...0>
+    simulator.apply_single_qubit_gate(X,
+                                simulator.dimension - 1)  # Применяем гейт X к последнему кубиту, чтобы подготовить его в |1>
 
     # Шаг 2: Применяем гейты Адамара ко всем кубитам
-    sim.apply_n_qubit_gate(HN(sim.dimension))
+    simulator.apply_n_qubit_gate(HN(simulator.dimension))
 
     # Шаг 3: Применяем оракул для задачи Бернштейна-Вазирани
-    sim.apply_n_qubit_gate(oracle)
+    simulator.apply_n_qubit_gate(oracle)
 
     # Шаг 4: Применяем гейты Адамара снова ко всем кубитам, кроме последнего
-    sim.apply_n_qubit_gate(HN(sim.dimension))
+    simulator.apply_n_qubit_gate(HN(simulator.dimension))
 
     # Шаг 5: Измеряем все кубиты, кроме последнего вспомогательного
     measured = []
-    for i in range(sim.dimension - 1):
-        measured.append(sim.measure(i))
+    for i in range(simulator.dimension - 1):
+        measured.append(simulator.measure(i))
 
     return measured
 
@@ -72,13 +72,13 @@ if __name__ == '__main__':
     s = [1, 0, 0]  # Скрытый двоичный вектор, который мы хотим найти
 
     # Создаём квантовый симулятор с N + 1 кубитами (N для входа, 1 вспомогательный)
-    sim = NQubitSimulator(N + 1)
+    simulator = NQubitSimulator(N + 1)
 
     # Генерируем оракул на основе скрытой строки s
     oracle = generate_oracle_bernstein_vazirani(N, s)
 
     # Запускаем алгоритм Бернштейна-Вазирани
-    result = bernstein_vazirani(sim, oracle)
+    result = bernstein_vazirani(simulator, oracle)
 
     print(f'Скрытый двоичный вектор s: {s}')
     print(f'Измерено: {result}')
