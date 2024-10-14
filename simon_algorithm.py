@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     # Собираем результаты для ORACLE_S2
     print('ORACLE_S2 (s = 11):')
-    results_s2 = collect_results(nQubSim, oracle_s2, num_runs=2)
+    results_s2 = collect_results(nQubSim, oracle_s2, num_runs=30+N)
     print(f'Results: {results_s2}')
 
     # Решаем уравнения для нахождения периода s
