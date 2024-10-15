@@ -1,6 +1,6 @@
 import numpy as np
 from interface import Qubit, QuantumDevice
-from constants import H, X, KET_0,rotation_matrix, CNOT
+from constants import H, X, KET_0,rotation_matrix, CNOT, P_0, P_1
 import itertools
 
 
@@ -105,12 +105,15 @@ class TwoQubitSimulator(QuantumDevice):
 
 
 
+import numpy as np
+import itertools
+
 class NQubitSimulator:
     def __init__(self, n: int):
         qubits = [SimulatedQubit() for _ in range(n)]
-        #self.state = KET_0
         self.dimension = n
         self.reset()
+        self.collapsed = [None for _ in range(n)]  # Инициализация коллапсированных кубитов
 
     def apply_single_qubit_gate(self, gate, qubit_idx: int):
         if qubit_idx < 0 or qubit_idx >= self.dimension:
@@ -127,59 +130,140 @@ class NQubitSimulator:
 
         self.state = operation @ self.state
 
-    def apply_single_qubit_gate2(self, gate, qubit_idx: int):
-        operation = None
-        if 0 < qubit_idx < self.dimension - 1:
-            # I x I x ... x G x I x ... x I
-            operation = np.eye(2)
-            for i in range(0, qubit_idx - 1):
-                operation = np.kron(operation, np.eye(2))
-            operation = np.kron(operation, gate)
-            for i in range(qubit_idx + 1, self.dimension):
-                operation = np.kron(operation, np.eye(2))
-
-        elif qubit_idx == 0:
-            # GATE x I x I x ... x I
-            operation = gate
-            for i in range(0, self.dimension):
-                operation = np.kron(operation, np.eye(2))
-
-        elif qubit_idx == self.dimension - 1:
-            # I x I x ...x I x G
-            operation = np.eye(2)
-            for i in range(0, self.dimension - 2):
-                operation = np.kron(operation, np.eye(2))
-            operation = np.kron(operation, gate)
-
-        else:
-            raise ValueError("Недопустимый индекс кубита.")
-
-        self.state = operation @ self.state
-
     def apply_n_qubit_gate(self, gate):
         self.state = gate @ self.state
 
     def measure(self, qubit_idx: int) -> int:
         """
-        Измерить состояние одного кубита в системе
+        Измерить состояние одного кубита в системе.
+        Если кубит уже был измерен, вернуть сохраненное значение.
         """
+        if self.collapsed[qubit_idx] is not None:
+            # Если кубит уже был измерен, возвращаем коллапсированное значение
+            return self.collapsed[qubit_idx]
+
         if qubit_idx > self.dimension or qubit_idx < 0:
             raise ValueError("Недопустимый индекс кубита.")
 
-
-        #Создаётся список всех возможных состояний кубитов.
+        # Вероятность того, что кубит находится в состоянии |0>
         prob_zero = 0
         combinations = list(itertools.product([0, 1], repeat=self.dimension))
-
-        #Вероятность того, что кубит находится в состоянии ∣0⟩,
-        # вычисляется как сумма квадратов амплитуд состояний, в которых выбранный кубит равен 0
 
         for i in range(len(combinations)):
             if combinations[i][qubit_idx] == 0:
                 prob_zero += np.abs(self.state[i, 0]) ** 2
 
         is_measured_zero = np.random.random() <= prob_zero
-        return 0 if is_measured_zero else 1
+        measured_value = 0 if is_measured_zero else 1
+
+        # Сохраняем результат измерения
+        self.collapsed[qubit_idx] = measured_value
+        return measured_value
+
+    def get_qubit_state(self, idx: int):
+        if idx < 0 or idx >= self.dimension:
+            raise ValueError(f"Invalid qubit index. Must be in range [0; {self.dimension}).")
+
+        # Инициализируем проекторы для |0> и |1> состояний
+        projector_0 = np.eye(1)  # Начальная единичная матрица для проектора на |0>
+        projector_1 = np.eye(1)  # Начальная единичная матрица для проектора на |1>
+
+        for i in range(self.dimension):
+            if i == idx:
+                projector_0 = np.kron(projector_0, P_0)  # Проектор на |0> для кубита idx
+                projector_1 = np.kron(projector_1, P_1)  # Проектор на |1> для кубита idx
+            else:
+                projector_0 = np.kron(projector_0, np.eye(2))  # Для остальных кубитов — единичная матрица
+                projector_1 = np.kron(projector_1, np.eye(2))
+
+        # Применяем проекторы к текущему состоянию
+        projected_state_0 = projector_0 @ self.state
+        projected_state_1 = projector_1 @ self.state
+
+        # Вычисляем вероятности для |0> и |1>
+        prob_0 = np.abs(np.vdot(projected_state_0, projected_state_0))
+        prob_1 = np.abs(np.vdot(projected_state_1, projected_state_1))
+
+        return {'|0>': prob_0, '|1>': prob_1}
+
+    def measure_multiple_qubits(self, qubit_indices: list) -> list:
+        """
+        Измерить несколько кубитов за один шаг.
+        :param qubit_indices: Список индексов кубитов.
+        :return: результат измерений.
+        """
+        for qubit_idx in qubit_indices:
+            if qubit_idx >= self.dimension or qubit_idx < 0:
+                raise ValueError(f"Invalid qubit index: {qubit_idx}. Only in range [0; {self.dimension}).")
+
+        # Все возможные варианты исходов: |000...000>, |000...001>, ..., |111...111>
+        possible_outcomes = list(itertools.product([0, 1], repeat=len(qubit_indices)))
+
+        probabilities = []
+        projectors = []
+
+        for outcome in possible_outcomes:
+            operator = np.eye(1)
+            outcome_projectors = []
+
+            # Генерация оператора проектора для каждого исхода
+            for idx, qubit_idx in enumerate(qubit_indices):
+                projector = P_0 if outcome[idx] == 0 else P_1
+                outcome_projectors.append(projector)
+
+            # Тензорное произведение операторов
+            for i in range(self.dimension):
+                if i in qubit_indices:
+                    idx_in_measure = qubit_indices.index(i)
+                    operator = np.kron(operator, outcome_projectors[idx_in_measure])
+                else:
+                    operator = np.kron(operator, np.eye(2))
+
+            # Применяем оператор проектора к системе
+            projected_state = operator @ self.state
+            probability = np.abs(np.vdot(projected_state, projected_state))
+
+            # Сохраняем вероятность и проектор для каждого исхода
+            probabilities.append(probability)
+            projectors.append(operator)
+
+        # Нормализуем вероятности
+        total_probability = sum(probabilities)
+        probabilities = [p / total_probability for p in probabilities]
+
+        random_value = np.random.random()
+        cumulative_probability = 0
+        measured_outcome = None
+
+        # Выбор результата измерения
+        for idx, prob in enumerate(probabilities):
+            cumulative_probability += prob
+            if random_value <= cumulative_probability:
+                measured_outcome = possible_outcomes[idx]
+                break
+
+        # Коллапсируем состояние
+        projector = projectors[possible_outcomes.index(measured_outcome)]
+        self.state = projector @ self.state / np.sqrt(probabilities[possible_outcomes.index(measured_outcome)])
+        for idx, qubit_idx in enumerate(qubit_indices):
+            self.collapsed[qubit_idx] = measured_outcome[idx]
+
+        return list(measured_outcome)
+
+    def controlled_by_measurement(self, gate_if_0, gate_if_1, measured_value, target_qubit_idx: int):
+        """
+        Применить гейт к целевому кубиту на основе результата измерения.
+        :param gate_if_0: Гейт для применения, если измеренное значение 0.
+        :param gate_if_1: Гейт для применения, если измеренное значение 1.
+        :param measured_value: Результат измерения (0 или 1).
+        :param target_qubit_idx: Индекс целевого кубита, к которому применяется гейт.
+        """
+        if measured_value == 0:
+            self.apply_single_qubit_gate(gate_if_0, target_qubit_idx)
+        elif measured_value == 1:
+            self.apply_single_qubit_gate(gate_if_1, target_qubit_idx)
+        else:
+            raise ValueError(f"Invalid measured value {measured_value}. Must be 0 or 1.")
 
     def set_state(self, state):
         self.state = state
@@ -189,3 +273,4 @@ class NQubitSimulator:
         self.state = np.copy(KET_0)  # Начинаем с состояния |0>
         for _ in range(1, self.dimension):
             self.state = np.kron(self.state, KET_0)  # Применяем тензорное произведение для каждого кубита
+        self.collapsed = [None for _ in range(self.dimension)]  # Сброс коллапсированных кубитов

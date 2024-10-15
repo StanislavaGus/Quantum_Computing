@@ -52,3 +52,21 @@ CNOT = np.array([
     [0, 0, 0, 1],
     [0, 0, 1, 0]
 ], dtype=complex)
+
+PAULI_X = np.array([[0, 1],
+                    [1, 0]])
+
+PAULI_Y = np.array([[0, -1j],
+                    [1j, 0]])
+
+PAULI_Z = np.array([[1, 0],
+                    [0, -1]])
+
+
+def RX(angle):
+    rotation_matrix = np.array([[np.cos(angle / 2), -1j * np.sin(angle / 2)],
+                                [-1j * np.sin(angle / 2), np.cos(angle / 2)]])
+    return rotation_matrix
+
+P_0 = np.array([[1, 0], [0, 0]])  # |0><0|
+P_1 = np.array([[0, 0], [0, 1]])  # |1><1|
