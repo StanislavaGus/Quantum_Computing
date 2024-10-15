@@ -1,13 +1,7 @@
 import numpy as np
 from symulator import NQubitSimulator
-from constants import HN, CNOT
+from constants import HN, CNOT_func
 from collections import defaultdict
-"""
-defaultdict — это подкласс стандартного словаря (dict), который предоставляет удобный способ 
-работы со значениями по умолчанию. В обычном словаре, если вы пытаетесь получить значение по 
-несуществующему ключу, Python выдает ошибку KeyError. Однако defaultdict позволяет автоматически 
-создавать значение по умолчанию для несуществующего ключа.
-"""
 
 def simon_algorithm(symulator: NQubitSimulator, oracle) -> list:
     """
@@ -28,56 +22,60 @@ def simon_algorithm(symulator: NQubitSimulator, oracle) -> list:
     return measured
 
 
-
-
-def example_n2_s11():
-    # Example
-    N = 2  # Len of s = '11'
+def oracle_s11():
+    N = 2  # Длина s = '11'
     measured_y = set()
 
-    # Oracle for s = 11. Taken from:
-    # https://github.com/Qiskit/textbook/blob/main/notebooks/ch-algorithms/simon.ipynb.
-
-    oracle = CNOT(4, 0, 2) @ CNOT(4, 0, 3) @ CNOT(4, 1, 2) @ CNOT(4, 1, 3)
+    oracle = CNOT_func(4, 0, 2) @ CNOT_func(4, 0, 3) @ CNOT_func(4, 1, 2) @ CNOT_func(4, 1, 3)
     ITER_COUNT = 1024
     m = defaultdict(int)
+
+    print(f"Запуск алгоритма Саймона для s = '11' ({N} кубита) на {ITER_COUNT} итераций...\n")
 
     for i in range(ITER_COUNT):
         sim = NQubitSimulator(N * 2)
         result = simon_algorithm(sim, oracle)
         if result == [0, 0]:
             continue
-        measured_y.add(''.join(map(str, result)))  # Convert list to str ex: [1, 0, 1] -> '101'
-        m[''.join(map(str, result))] += 1
+        measured_str = ''.join(map(str, result))
+        measured_y.add(measured_str)  # Преобразование списка в строку, например [1, 0, 1] -> '101'
+        m[measured_str] += 1
 
-    print(measured_y)
-    print(m)
+    print("Измеренные уникальные результаты:")
+    for key in measured_y:
+        print(f"  {key}: {m[key]} раз")
+
+    print(f"\nИтоговый результат для s = '11': {m['11']}")
     return m['11']
 
 
-def example_n3_s100():
-
-    N = 3  # длина s
+def oracle_s100():
+    N = 3  # Длина s = '100'
     measured_y = set()
 
-
-    oracle = CNOT(6, 0, 3)
+    oracle = CNOT_func(6, 0, 3)
     ITER_COUNT = 1024
     m = defaultdict(int)
+
+    print(f"\nЗапуск алгоритма Саймона для s = '100' ({N} кубита) на {ITER_COUNT} итераций...\n")
 
     for i in range(ITER_COUNT):
         sim = NQubitSimulator(N * 2)
         result = simon_algorithm(sim, oracle)
         if result == [0, 0]:
             continue
-        measured_y.add(''.join(map(str, result)))  # Convert list to str ex: [1, 0, 1] -> '101'
-        m[''.join(map(str, result))] += 1
+        measured_str = ''.join(map(str, result))
+        measured_y.add(measured_str)  # Преобразование списка в строку, например [1, 0, 1] -> '101'
+        m[measured_str] += 1
 
-    print(measured_y)
-    print(m)
+    print("Измеренные уникальные результаты:")
+    for key in measured_y:
+        print(f"  {key}: {m[key]} раз")
+
+    print(f"\nИтоговый результат для s = '100': {m['100']}")
     return m['100']
 
 
 if __name__ == '__main__':
-    example_n2_s11()
-    example_n3_s100()
+    oracle_s11()
+    oracle_s100()

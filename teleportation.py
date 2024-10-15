@@ -1,52 +1,64 @@
 from typing import List
-
 import numpy as np
-
-from constants import X, HN, PAULI_X, KET_0, KET_1, H, CNOT, PAULI_Z, RX
+from constants import PAULI_X, H,CNOT, PAULI_Z, RX
 from symulator import NQubitSimulator
 
 def teleport(symulator: NQubitSimulator):
     """
-    Quantum teleporation
+    Квантовая телепортация
     """
 
+    # Шаг 1: Сброс квантового симулятора в исходное состояние
     symulator.reset()
+    print("\n--- Квантовая телепортация начата ---\n")
 
-    # Поворот
+    # Шаг 2: Поворот первого кубита на угол pi/4 (подготовка состояния)
     symulator.apply_single_qubit_gate(RX(np.pi/4), 0)
+    print("Применен поворот RX к первому кубиту (подготовка состояния).\n")
 
-    # Применить Адамара к центральному кубиту
+    # Шаг 3: Применить гейт Адамара ко второму (центральному) кубиту
     symulator.apply_single_qubit_gate(H, 1)
+    print("Применен гейт Адамара ко второму кубиту.\n")
 
+    # Шаг 4: Применить CNOT гейт между вторым и третьим кубитом (связывание)
     symulator.apply_n_qubit_gate(np.kron(np.eye(2), CNOT))
-    #symulator.apply_n_gates(np.eye(2), CNOT)
+    print("Применен CNOT гейт между вторым и третьим кубитом.\n")
 
+    # Показать состояние кубитов после CNOT
+    print("Состояние кубитов после применения CNOT:\n")
     for i in range(symulator.dimension):
-        print(f'State {i}: {symulator.get_qubit_state(i)}')
+        print(f'Кубит {i}: {symulator.get_qubit_state(i)}')
+    print("\n")
 
-
+    # Шаг 5: Применить CNOT гейт между первым и вторым кубитом
     symulator.apply_n_qubit_gate(np.kron(CNOT, np.eye(2)))
-    #symulator.apply_n_gates(CNOT, np.eye(2))
+    print("Применен CNOT гейт между первым и вторым кубитом.\n")
 
+    # Применить гейт Адамара к первому кубиту
     gate = np.kron(H, np.eye(2))
     gate = np.kron(gate, np.eye(2))
     symulator.apply_n_qubit_gate(gate)
-    #symulator.apply_n_gates(H, np.eye(2), np.eye(2))
+    print("Применен гейт Адамара к первому кубиту.\n")
 
-    # Step 5: Measure qubits 0 and 1
+    # Шаг 6: Измерение кубитов 0 и 1
     measurement_results = symulator.measure_multiple_qubits([0, 1])
-    print(f'Measurements: {measurement_results}')
-    print('Teleport...')
-    # Step 6: Apply controlled gates based on the measurement results
-    # If qubit 1 was measured as 1, apply X gate to qubit 2
-    symulator.controlled_by_measurement(np.eye(2), PAULI_X, measurement_results[1], 2)
+    print(f'Результаты измерений кубитов 0 и 1: {measurement_results}')
+    print("\nТелепортация...\n")
 
-    # If qubit 0 was measured as 1, apply Z gate to qubit 2
+    # Шаг 7: Применение контролируемых гейтов в зависимости от результатов измерения
+    # Если кубит 1 был измерен как 1, применить X гейт к кубиту 2
+    symulator.controlled_by_measurement(np.eye(2), PAULI_X, measurement_results[1], 2)
+    print(f"Применен X гейт к третьему кубиту на основе измерения кубита 1 ({measurement_results[1]}).\n")
+
+    # Если кубит 0 был измерен как 1, применить Z гейт к кубиту 2
     symulator.controlled_by_measurement(np.eye(2), PAULI_Z, measurement_results[0], 2)
-    print('Result...')
-    # Final state of the third qubit should be the teleported state
+    print(f"Применен Z гейт к третьему кубиту на основе измерения кубита 0 ({measurement_results[0]}).\n")
+
+    # Показать финальное состояние кубитов
+    print("Результат телепортации - финальное состояние кубитов:\n")
     for i in range(symulator.dimension):
-        print(f'State {i}: {symulator.get_qubit_state(i)}')
+        print(f'Кубит {i}: {symulator.get_qubit_state(i)}')
+    print("\n--- Телепортация завершена ---\n")
 
 if __name__ == '__main__':
     symulator = NQubitSimulator(3)
