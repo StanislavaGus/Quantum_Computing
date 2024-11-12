@@ -89,4 +89,4 @@ def run_experiment(max_qubits=5):
 
 
 # Запуск эксперимента
-experiment_results = run_experiment(max_qubits=5)
+experiment_results = run_experiment(max_qubits=7)
