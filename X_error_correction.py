@@ -1,11 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-# Определение операторов и состояний
-PAULI_X = np.array([[0, 1], [1, 0]])  # Оператор X (битовая ошибка)
-KET_0 = np.array([1, 0])  # Состояние |0>
-KET_1 = np.array([0, 1])  # Состояние |1>
-
+from constants import PAULI_X, KET_0, KET_1
 
 def apply_x(qubit):
     """Применяет оператор X к заданному состоянию."""
