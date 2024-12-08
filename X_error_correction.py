@@ -40,7 +40,7 @@ def introduce_errors(encoded, p):
 
 def measure_syndrome(errored):
     """
-    Измерение синдрома ошибок с использованием двух ancilla кубитов.
+    Измерение синдрома ошибок.
     Возвращает два битовых синдрома (s1, s2).
     """
     q0, q1, q2 = errored
@@ -59,39 +59,64 @@ def correct_errors(errored, syndrome):
     # Определяем, какой кубит ошибся
     if (s1, s2) == (0, 0):
         # Нет ошибок
-        return errored.copy()
+        pass
     elif (s1, s2) == (1, 0):
-        # Ошибка в q1
+        # Ошибка во втором кубите (q1)
         errored[1] = apply_x(errored[1])
     elif (s1, s2) == (0, 1):
-        # Ошибка в q2
+        # Ошибка в третьем кубите (q2)
         errored[2] = apply_x(errored[2])
     elif (s1, s2) == (1, 1):
-        # Ошибка в q0
+        # Ошибка в первом кубите (q0)
         errored[0] = apply_x(errored[0])
     return errored.copy()
 
 
-def decode(errored):
-    """Декодирование трёх кубитов обратно в один логический кубит с использованием большинства."""
-    count_0 = sum(np.array_equal(q, KET_0) for q in errored)
-    count_1 = 3 - count_0
-    return KET_1.copy() if count_1 > count_0 else KET_0.copy()
+def decode(corrected):
+    """Декодирование трёх кубитов обратно в один логический кубит на основе коррекции."""
+    # После коррекции все кубиты должны быть одинаковыми
+    # Проверяем соответствие кодовым словам |000> или |111>
+    if np.array_equal(corrected[0], KET_0) and np.array_equal(corrected[1], KET_0) and np.array_equal(corrected[2],
+                                                                                                      KET_0):
+        return KET_0.copy()
+    elif np.array_equal(corrected[0], KET_1) and np.array_equal(corrected[1], KET_1) and np.array_equal(corrected[2],
+                                                                                                        KET_1):
+        return KET_1.copy()
+    else:
+        # Неконсистентное состояние после коррекции
+        raise ValueError("Неконсистентное состояние после коррекции.")
 
 
 def simulate_correction(p, n_runs=10000):
-    """Симуляция коррекции ошибок для заданной вероятности p."""
+    """Симуляция коррекции битовых ошибок с использованием тройного повторяющегося кода."""
     error_after_correction = 0
-    # Предполагаем, что логический кубит всегда начинается в состоянии |0>
     for _ in range(n_runs):
+        # Исходное состояние логического кубита (например, |0>)
         original = KET_0.copy()
+
+        # Кодирование
         encoded = encode(original)
+
+        # Введение ошибок
         errored = introduce_errors(encoded, p)
+
+        # Измерение синдрома
         syndrome = measure_syndrome(errored)
+
+        # Коррекция ошибок на основе синдрома
         corrected = correct_errors(errored, syndrome)
-        decoded = decode(corrected)
-        if not np.array_equal(decoded, original):
+
+        # Декодирование обратно в логический кубит
+        try:
+            decoded = decode(corrected)
+            # Проверка, отличается ли декодированный кубит от исходного
+            if not np.array_equal(decoded, original):
+                error_after_correction += 1
+        except ValueError:
+            # Неконсистентное состояние после коррекции считается ошибкой
             error_after_correction += 1
+
+    # Вычисление средней вероятности ошибки после коррекции
     p_e_corrected = error_after_correction / n_runs
     return p_e_corrected
 
