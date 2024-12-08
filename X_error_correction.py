@@ -203,7 +203,7 @@ def plot_simulation(simulated_p_e, p_values, p_e_no_correction, theoretical_p_e_
     # Прямая линия p_e = p (вероятность без коррекции)
     plt.plot(p_values, p_values, label='Вероятность без коррекции (p_e = p)', color='black', linestyle=':')
 
-    plt.title("Вероятность ошибки после декодирования тройным повторяющимся кодом")
+    plt.title("X-ошибки")
     plt.xlabel("Вероятность битовой ошибки на кубите p")
     plt.ylabel("Вероятность ошибки после декодирования p_e")
     plt.legend()

@@ -61,7 +61,7 @@ PAULI_Y = np.array([[0, -1j],
 
 PAULI_Z = np.array([[1, 0],
                     [0, -1]])
-
+Z = PAULI_Z
 
 def RX(angle):
     rotation_matrix = np.array([[np.cos(angle / 2), -1j * np.sin(angle / 2)],
