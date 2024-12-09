@@ -268,9 +268,51 @@ class NQubitSimulator:
     def set_state(self, state):
         self.state = state
 
+    def get_state(self):
+        return self.state
+
     def reset(self):
         """Сбрасываем состояние системы кубитов в |00...0>"""
         self.state = np.copy(KET_0)  # Начинаем с состояния |0>
         for _ in range(1, self.dimension):
             self.state = np.kron(self.state, KET_0)  # Применяем тензорное произведение для каждого кубита
         self.collapsed = [None for _ in range(self.dimension)]  # Сброс коллапсированных кубитов
+
+    def get_qubit_state_raw(self, idx: int):
+        if idx < 0 or idx >= self.dimension:
+            raise ValueError(f"Invalid qubit index. Must be in range [0; {self.dimension}).")
+
+        P_0 = np.array([[1, 0], [0, 0]])
+        P_1 = np.array([[0, 0], [0, 1]])
+
+        projector_0 = np.eye(1)
+        projector_1 = np.eye(1)
+
+        for i in range(self.dimension):
+            if i == idx:
+                projector_0 = np.kron(projector_0, P_0)
+                projector_1 = np.kron(projector_1, P_1)
+            else:
+                projector_0 = np.kron(projector_0, np.eye(2))
+                projector_1 = np.kron(projector_1, np.eye(2))
+
+        projected_state_0 = projector_0 @ self.state
+        projected_state_1 = projector_1 @ self.state
+
+        amplitude_0 = projected_state_0[0]
+        amplitude_1 = projected_state_1[0]
+        return {'|0>': sum(projected_state_0), '|1>': sum(projected_state_1)}
+
+    def apply_n_gates(self, *gates):
+        # Start with the first gate
+        operation = gates[0]
+
+        # Perform Kronecker product for each gate, if no gate provided for a specific qubit, use identity matrix
+        for i in range(1, len(gates)):
+            gate = gates[i]
+            if gate is None:
+                gate = np.eye(2)  # Identity gate for qubits that don't have a specific gate
+            operation = np.kron(operation, gate)
+
+        # Apply the final operation to the quantum state
+        self.state = operation @ self.state
